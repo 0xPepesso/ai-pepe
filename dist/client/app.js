@@ -9,7 +9,7 @@ let requestId=0;let controller;let latestReport=null;let latestHistory=0;const W
 const money=n=>{n=Number(n);if(!Number.isFinite(n))return'Unavailable';if(n>0&&n<.01)return'<$0.01';if(n>=1e9)return'$'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(2)+'K';return'$'+n.toLocaleString('en-US',{maximumFractionDigits:2})};
 const price=n=>{n=Number(n);if(!Number.isFinite(n))return'Not indexed';if(n===0)return'$0';if(n<.000001)return'$'+n.toExponential(2);if(n<.01)return'$'+n.toFixed(6);return money(n)};
 const short=a=>a?a.slice(0,8)+'…'+a.slice(-6):'unknown';
-function addressAvatar(){return'/favicon.svg?v=2'}
+function addressAvatar(){return'/pepe-avatar.png?v=1'}
 function setAvatar(image,url,address){let fallback=addressAvatar(address);image.hidden=false;image.onerror=()=>{image.onerror=null;image.src=fallback};image.src=url||fallback;}
 function tokenLore(report){
   const supply=report.supply?fmt(report.supply)+' '+(report.symbol||'tokens'):'an unreadable supply';
