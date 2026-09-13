@@ -9,7 +9,7 @@ export function ipfsImage(value){
 export function publicImage(value){
   const ipfs=ipfsImage(value);if(ipfs)return ipfs;
   if(typeof value!=='string'||value.length>1000)return null;
-  try{const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port||!url.hostname.includes('.')||url.hostname==='localhost'||/^\d+(?:\.\d+){3}$/.test(url.hostname))return null;return url.href;}catch{return null;}
+  try{const url=new URL(value),trusted=url.hostname==='cdn.dexscreener.com'||url.hostname==='dd.dexscreener.com'||url.hostname==='gateway.pinata.cloud';if(url.protocol!=='https:'||url.username||url.password||url.port||!trusted)return null;return url.href;}catch{return null;}
 }
 export function decodeString(hex){
   if(typeof hex!=='string'||!/^0x[0-9a-f]*$/i.test(hex))return null;
@@ -40,7 +40,7 @@ export function scoreReport(report){
   if(report.holderStats){const c=report.holderStats.top10Pct;const count=report.holderStats.count;
     const concentration=c===null?0:riskBand(c,[[15,10],[20,30],[40,65],[60,82],[Infinity,95]]);
     const scarcity=count===null?0:riskBand(count,[[3,100],[10,85],[50,60],[200,35],[Infinity,15]]);
-    const risk=Math.max(concentration,scarcity);measured('Holder distribution',risk,20,(c===null?'Unknown concentration':c.toFixed(1)+'% held by top 10 non-pool addresses')+' · '+report.holderStats.countLabel+' holder'+(count===1?'':'s')+' indexed · inspect linked-wallet clusters in OCTO Wallet Map',risk>=65?'RED FLAG':'CHECKED');
+    const risk=Math.max(concentration,scarcity);measured('Holder distribution',risk,20,(c===null?'Unknown concentration':c.toFixed(1)+'% held by top 10 non-pool addresses')+' · '+report.holderStats.countLabel+' holder'+(count===1?'':'s')+' indexed · inspect linked-wallet clusters in Pepe Wallet Map',risk>=65?'RED FLAG':'CHECKED');
   }else unknown('Holder distribution',20,'Top-holder concentration and wallet clusters are unavailable.');
   const market=report.market||{},datum=value=>value===null||value===undefined?NaN:Number(value),change=datum(market.priceChange24hPct),volume=datum(market.volume24hUsd),depth=datum(market.depthUsd),buys=datum(market.buys24h),sells=datum(market.sells24h),trades=buys+sells;
   if([change,volume,buys,sells].some(Number.isFinite)){let risk=20;const notes=[];

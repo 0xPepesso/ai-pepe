@@ -80,7 +80,7 @@
     }frame=requestAnimationFrame(animate);
   }
   function sync(){cancelAnimationFrame(frame);frame=0;last=performance.now();if(ready&&visible&&!document.hidden)frame=requestAnimationFrame(animate);}
-  const neural=host.querySelector('.neural-field'),reaction=host.querySelector('.octo-reaction');
+  const neural=host.querySelector('.neural-field'),reaction=host.querySelector('.pepe-reaction');
   host.addEventListener('pointerenter',()=>{pointing=true;targetInterest=.72;host.classList.add('curious');reaction.textContent='CURIOUS MODE';});
   host.addEventListener('pointermove',e=>{const r=host.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));target=[x*2-1,y*2-1];neural.style.setProperty('--cursor-x',x*100+'%');neural.style.setProperty('--cursor-y',y*100+'%');});
   host.addEventListener('pointerdown',e=>{if(e.target.closest('.node'))return;clearTimeout(reactionTimer);targetInterest=1.65;host.classList.add('booped');reaction.textContent='BOOP DETECTED';reactionTimer=setTimeout(()=>{host.classList.remove('booped');reaction.textContent='CURIOUS MODE';targetInterest=pointing?.72:0},620);});

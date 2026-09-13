@@ -1,18 +1,18 @@
 {
-  "name": "octo-oracle",
+  "name": "ai-pepe",
   "main": "../dist/server/index.js",
   "compatibility_date": "2026-09-12",
   "assets": {"directory": "../dist/client", "binding": "ASSETS", "run_worker_first": true},
   "routes": [
-    {"pattern": "octooracle.app", "custom_domain": true},
-    {"pattern": "www.octooracle.app", "custom_domain": true}
+    {"pattern": "askaipepe.app", "custom_domain": true},
+    {"pattern": "www.askaipepe.app", "custom_domain": true}
   ],
   "triggers": {"crons": ["0 * * * *"]},
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "octo-oracle-production",
-      "database_id": "24d4d642-7130-400b-99ba-3a1e05ac6a60",
+      "database_name": "ai-pepe-production",
+      "database_id": "YOUR_D1_DATABASE_ID",
       "migrations_dir": "../drizzle"
     }
   ]

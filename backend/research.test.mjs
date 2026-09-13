@@ -25,6 +25,7 @@ test('only turns IPFS token artwork into a public image URL',()=>{
   assert.equal(ipfsImage('ipfs://bafy123/logo.png'),'https://gateway.pinata.cloud/ipfs/bafy123/logo.png');
   assert.equal(ipfsImage('https://tracker.example/logo.png'),null);
   assert.equal(publicImage('https://cdn.dexscreener.com/token.png'),'https://cdn.dexscreener.com/token.png');
+  assert.equal(publicImage('https://dd.dexscreener.com/token.png'),'https://dd.dexscreener.com/token.png');
   assert.equal(publicImage('http://localhost/token.png'),null);
 });
 
@@ -61,16 +62,18 @@ test('does not treat missing scam checks as safe evidence',()=>{
 test('worker exposes health and rejects malformed history addresses',async()=>{
   assert.equal(typeof worker.scheduled,'function');
   const assetUrls=[];const env={ASSETS:{fetch:request=>{assetUrls.push(request.url);return new Response('asset')}}};
-  const health=await worker.fetch(new Request('https://octo.test/api/health'),env);
+  const health=await worker.fetch(new Request('https://ai-pepe.test/api/health'),env);
   assert.equal(health.status,200);
   assert.equal((await health.json()).ok,true);
-  const history=await worker.fetch(new Request('https://octo.test/api/history?address=bad'),env);
+  const history=await worker.fetch(new Request('https://ai-pepe.test/api/history?address=bad'),env);
   assert.equal(history.status,400);
-  const snapshot=await worker.fetch(new Request('https://octo.test/api/snapshot',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),env);
-  assert.equal(snapshot.status,400);
-  const watch=await worker.fetch(new Request('https://octo.test/api/watch?addresses=bad'),env);
+  const snapshot=await worker.fetch(new Request('https://ai-pepe.test/api/snapshot',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}),env);
+  assert.equal(snapshot.status,403);
+  const watch=await worker.fetch(new Request('https://ai-pepe.test/api/watch?addresses=bad'),env);
   assert.equal(watch.status,400);
-  const address='0x'+'a'.repeat(40),shared=await worker.fetch(new Request('https://octo.test/token/'+address),env);
+  const address='0x'+'a'.repeat(40),shared=await worker.fetch(new Request('https://ai-pepe.test/token/'+address),env);
   assert.equal(await shared.text(),'asset');
-  assert.equal(assetUrls.at(-1),'https://octo.test/');
+  assert.equal(assetUrls.at(-1),'https://ai-pepe.test/');
+  assert.equal(shared.headers.get('X-Frame-Options'),'DENY');
+  assert.match(shared.headers.get('Content-Security-Policy'),/frame-ancestors 'none'/);
 });

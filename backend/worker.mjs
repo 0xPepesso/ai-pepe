@@ -2,6 +2,16 @@ import {analyzeToken,validAddress,PUBLIC_RPC} from '../dist/client/research.mjs'
 
 const headers={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const json=(data,status=200)=>Response.json(data,{status,headers});
+const contentSecurityPolicy="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://gateway.pinata.cloud https://cdn.dexscreener.com https://dd.dexscreener.com; connect-src 'self' https://rpc.mainnet.chain.robinhood.com https://api.ponsportal.fun https://coins.llama.fi https://api.dexscreener.com https://robinhoodchain.blockscout.com";
+async function assetResponse(request,env){
+  const response=await env.ASSETS.fetch(request),secured=new Headers(response.headers);
+  secured.set('Content-Security-Policy',contentSecurityPolicy);
+  secured.set('Referrer-Policy','no-referrer');
+  secured.set('Permissions-Policy','camera=(), microphone=(), geolocation=()');
+  secured.set('X-Content-Type-Options','nosniff');
+  secured.set('X-Frame-Options','DENY');
+  return new Response(response.body,{status:response.status,statusText:response.statusText,headers:secured});
+}
 const LAUNCH_FACTORIES=[
   {address:'0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e',topic:'0x8d4aad4953d0ca700d468f3753aa14432d1b35b43ec6409f051fb6aa43a89607',deployerTopic:3,version:'v2'},
   {address:'0xA5aAb3F0c6EeadF30Ef1D3Eb997108E976351feB',topic:'0xdb51ea9ad51ab453a65a4cb7e60c3cb378c9501bb002609f8f97778fb6c4235a',deployerTopic:2,version:'v1'},
@@ -14,10 +24,16 @@ async function cachedReport(db,key){
   catch(error){console.error('cache read failed',error);return null;}
 }
 
-async function allowRequest(db){
+async function requestBucket(request){
+  const address=request.headers.get('CF-Connecting-IP')||'unknown';
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(address));
+  return [...new Uint8Array(digest).slice(0,8)].map(byte=>byte.toString(16).padStart(2,'0')).join('');
+}
+
+async function allowRequest(db,request){
   if(!db)return true;
-  try{const minute=new Date().toISOString().slice(0,16),expires=Date.now()+120000;const row=await db.prepare('INSERT INTO quotas(bucket,used,expires_at) VALUES(?,1,?) ON CONFLICT(bucket) DO UPDATE SET used=used+1 WHERE used<20 RETURNING used').bind('minute:'+minute,expires).first();return !!row;}
-  catch(error){console.error('rate limit failed',error);return true;}
+  try{const minute=new Date().toISOString().slice(0,16),bucket='minute:'+minute+':'+await requestBucket(request),expires=Date.now()+120000;const row=await db.prepare('INSERT INTO quotas(bucket,used,expires_at) VALUES(?,1,?) ON CONFLICT(bucket) DO UPDATE SET used=used+1 WHERE used<20 RETURNING used').bind(bucket,expires).first();return !!row;}
+  catch(error){console.error('rate limit failed',error);return false;}
 }
 
 const snapshotBody=report=>({marketCapUsd:report.market?.marketCapUsd??null,priceUsd:report.market?.priceUsd??null,depthUsd:report.market?.depthUsd??null,holderCount:report.holderStats?.count??null,holderCountExact:report.holderStats?.exact??false,top10Pct:report.holderStats?.top10Pct??null,riskScore:report.riskScore,lensCoverage:report.lensCoverage});
@@ -42,13 +58,6 @@ async function refreshTracked(env){
   if(!env.DB)return;
   const rows=await env.DB.prepare('SELECT address,MAX(observed_at) AS last_seen FROM snapshots GROUP BY address ORDER BY last_seen DESC LIMIT 5').all();
   for(const row of rows.results||[]){try{const report=await analyzeToken(row.address,{rpcUrl:env.ROBINHOOD_RPC_URL||PUBLIC_RPC});await persistReport(env.DB,'report:'+row.address.toLowerCase(),report);}catch(error){console.error('scheduled analysis failed',row.address,error);}}
-}
-
-const bounded=(value,min,max)=>value===null||value===undefined?null:Number.isFinite(Number(value))&&Number(value)>=min&&Number(value)<=max?Number(value):null;
-function clientReport(input){
-  if(!validAddress(input.address)||input.chainId!==4663||!Number.isInteger(input.block)||input.block<1)throw new Error('Invalid snapshot');
-  const body=input.metrics||{},holderCount=bounded(body.holderCount,0,1e9),top10Pct=bounded(body.top10Pct,0,100),riskScore=bounded(body.riskScore,0,100),lensCoverage=bounded(body.lensCoverage,0,100);
-  return {address:input.address.toLowerCase(),chainId:4663,block:input.block,retrievedAt:new Date().toISOString(),market:{marketCapUsd:bounded(body.marketCapUsd,0,1e18),priceUsd:bounded(body.priceUsd,0,1e12),depthUsd:bounded(body.depthUsd,0,1e18)},holderStats:holderCount===null&&top10Pct===null?null:{count:holderCount,exact:body.holderCountExact===true,top10Pct},riskScore,lensCoverage};
 }
 
 async function history(db,address){
@@ -94,16 +103,10 @@ export default {async fetch(request,env){
     if(request.method!=='GET')return json({error:'GET required'},405);
     try{return json({chainId:4663,tokens:await newTokens(env)});}catch(error){console.error('new token feed failed',error);return json({error:'New-token feed is temporarily unavailable'},503);}
   }
-  if(url.pathname==='/api/snapshot'){
-    if(request.method!=='POST')return json({error:'POST required'},405);
-    if(request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)return json({error:'Same-origin requests required'},403);
-    if(!request.headers.get('Content-Type')?.startsWith('application/json'))return json({error:'JSON required'},415);
-    try{const raw=await request.text();if(raw.length>2048)return json({error:'Request too large'},413);if(!await allowRequest(env.DB))return json({error:'Research rate limit reached; retry in one minute'},429);const report=clientReport(JSON.parse(raw)),stored=await persistSnapshot(env.DB,report);return json({stored,historyCount:stored?(await history(env.DB,report.address)).length:0});}
-    catch(error){console.error('snapshot rejected',error);return json({error:'Invalid snapshot'},400);}
-  }
+  if(url.pathname==='/api/snapshot')return json({error:'Client snapshots are disabled'},403);
   if(url.pathname!=='/api/analyze'){
-    if(request.method==='GET'&&/^\/token\/0x[a-fA-F0-9]{40}\/?$/.test(url.pathname))return env.ASSETS.fetch(new Request(new URL('/',url),{headers:request.headers}));
-    return env.ASSETS.fetch(request);
+    if(request.method==='GET'&&/^\/token\/0x[a-fA-F0-9]{40}\/?$/.test(url.pathname))return assetResponse(new Request(new URL('/',url),{headers:request.headers}),env);
+    return assetResponse(request,env);
   }
   if(request.method!=='POST')return json({error:'POST required'},405);
   if(request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)return json({error:'Same-origin requests required'},403);
@@ -113,7 +116,7 @@ export default {async fetch(request,env){
     const input=JSON.parse(raw);if(!validAddress(input.address))return json({error:'Invalid contract address'},400);
     const key='report:'+input.address.toLowerCase(),cached=await cachedReport(env.DB,key);
     if(cached){const report={...JSON.parse(cached.body),cached:true};report.historyCount=(await history(env.DB,input.address)).length;return json(report);}
-    if(!await allowRequest(env.DB))return json({error:'Research rate limit reached; retry in one minute'},429);
+    if(!await allowRequest(env.DB,request))return json({error:'Research rate limit reached; retry in one minute'},429);
     const report=await analyzeToken(input.address,{rpcUrl:env.ROBINHOOD_RPC_URL||PUBLIC_RPC});
     report.stored=await persistReport(env.DB,key,report);report.historyCount=report.stored?(await history(env.DB,input.address)).length:0;
     return json(report);

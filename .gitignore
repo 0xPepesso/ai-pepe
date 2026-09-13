@@ -6,3 +6,11 @@
 .wrangler/
 **/.wrangler/
 node_modules/
+.openai/hosting.json
+.media-tools/
+media/
+download_sss.sh
+make_media.py
+make_motion_clips.swift
+remix_twitter_clips.sh
+hoodtrench.html
