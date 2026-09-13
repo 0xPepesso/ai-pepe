@@ -1,0 +1,6 @@
+# Set locally or via Cloudflare Worker secrets; never put values in dist/.
+ACCESS_PASSWORD=
+ROBINHOOD_RPC_URL=
+OPENAI_API_KEY=
+X_BEARER_TOKEN=
+FIRECRAWL_API_KEY=

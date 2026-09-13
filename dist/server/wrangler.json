@@ -1,0 +1,5 @@
+{
+  "main":"index.js",
+  "compatibility_date":"2026-09-12",
+  "assets":{"directory":"../client","binding":"ASSETS","run_worker_first":true}
+}
