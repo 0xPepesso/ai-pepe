@@ -94,7 +94,10 @@ html{filter:grayscale(1) contrast(1.04)}
 
 /* Living ronin: cursor-tracked eyes, depth and signal motion. */
 .creature{--scene-x:0px;--scene-y:0px;--scene-rotate:0deg;--gaze-x:50%;--gaze-y:50%;perspective:900px;cursor:default}
-.creature>img{translate:calc(var(--scene-x) * -.55) calc(var(--scene-y) * -.55);rotate:var(--scene-rotate);scale:1.018;will-change:translate,rotate,filter;animation:pepeAlive 6.2s ease-in-out infinite}
+.creature>img.pepe-background{z-index:1;translate:calc(var(--scene-x) * -.3) calc(var(--scene-y) * -.3);scale:1.075;opacity:.7;filter:contrast(1.15) brightness(.56);mask-image:linear-gradient(to bottom,#000 0 82%,transparent 100%);will-change:translate,transform,filter;animation:townAlive 14s ease-in-out infinite}
+.creature>img.pepe-figure{z-index:2;translate:calc(var(--scene-x) * -.85) calc(var(--scene-y) * -.75);rotate:var(--scene-rotate);scale:1.025;opacity:.98;filter:contrast(1.12) brightness(.78) drop-shadow(0 18px 28px rgba(0,0,0,.5));transform-origin:51% 72%;will-change:translate,rotate,transform,filter}
+.creature>img.pepe-body{clip-path:inset(46% 0 0 0);mask-image:linear-gradient(to bottom,#000 0 86%,transparent 100%);transform-origin:51% 88%;animation:pepeBodyAlive 4.8s ease-in-out infinite}
+.creature>img.pepe-head{clip-path:inset(0 0 44% 0);transform-origin:51% 49%;animation:pepeHeadAlive 4.8s ease-in-out infinite}
 .neural-field{translate:var(--scene-x) var(--scene-y);transition:translate .24s ease-out;will-change:translate}
 .neural-field:before{content:"";position:absolute;inset:-25%;background:radial-gradient(circle 90px at var(--gaze-x) var(--gaze-y),rgba(255,255,255,.17),rgba(255,255,255,.035) 42%,transparent 72%);mix-blend-mode:screen;opacity:.72;transition:opacity .3s}
 .gaze-reticle{position:absolute;z-index:5;left:var(--gaze-x);top:var(--gaze-y);width:30px;height:30px;border:1px solid rgba(255,255,255,.38);border-radius:50%;translate:-50% -50%;transition:left .12s linear,top .12s linear,opacity .25s;opacity:.52;animation:reticlePulse 2.2s ease-in-out infinite}
@@ -102,7 +105,14 @@ html{filter:grayscale(1) contrast(1.04)}
 .node{translate:var(--node-x,0px) var(--node-y,0px);will-change:translate}.node.active{animation:activeSignal 2.4s ease-in-out infinite}
 .creature:hover .gaze-reticle{opacity:.88}.creature:hover .pepe-reaction{box-shadow:0 0 24px rgba(255,255,255,.15)}
 .creature[data-pepe-mode=scanning] .gaze-reticle{animation-duration:.65s;opacity:1}
-@keyframes pepeAlive{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-5px) scale(1.007)}55%{transform:translateY(-6px) scale(1.009)}}
+@keyframes pepeBodyAlive{0%,100%{transform:translateY(3px) scale(1)}42%{transform:translateY(-4px) scale(1.012,.993)}58%{transform:translateY(-5px) scale(1.014,.992)}}
+@keyframes pepeHeadAlive{0%,100%{transform:translateY(3px) rotate(-.25deg)}42%{transform:translateY(-8px) rotate(.22deg)}58%{transform:translateY(-9px) rotate(.3deg)}}
+@keyframes townAlive{0%,100%{transform:scale(1) translate3d(0,0,0)}50%{transform:scale(1.018) translate3d(-3px,-2px,0)}}
+.creature[data-pepe-mode]>.pepe-background{animation:townAlive 14s ease-in-out infinite;filter:contrast(1.15) brightness(.56)}
+.creature[data-pepe-mode=wait]>.pepe-figure{filter:contrast(1.12) brightness(.78) drop-shadow(0 18px 28px rgba(0,0,0,.5))}.creature[data-pepe-mode=wait]>.pepe-body{animation:pepeBodyAlive 4.8s ease-in-out infinite}.creature[data-pepe-mode=wait]>.pepe-head{animation:pepeHeadAlive 4.8s ease-in-out infinite}
+.creature[data-pepe-mode=scanning]>.pepe-figure{animation:pepeDecode .9s steps(2,end) infinite;filter:contrast(1.34) brightness(.96) drop-shadow(0 0 34px rgba(255,255,255,.42))}
+.creature[data-pepe-mode=buy]>.pepe-figure{animation:pepeAscend 2.7s ease-in-out infinite;filter:contrast(1.2) brightness(.98) drop-shadow(0 0 44px rgba(255,255,255,.34))}
+.creature[data-pepe-mode=avoid]>.pepe-figure{animation:pepeReject .5s steps(2,end) 3,pepeDanger 3.1s ease-in-out 1.5s infinite;filter:contrast(1.5) brightness(.56) invert(.08) drop-shadow(0 0 38px rgba(255,255,255,.4))}
 @keyframes reticlePulse{0%,100%{scale:.82;opacity:.32}50%{scale:1.08;opacity:.75}}
 @keyframes activeSignal{0%,100%{box-shadow:0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 20px rgba(255,255,255,.18)}}
 @media(prefers-reduced-motion:reduce){.creature{cursor:auto}.gaze-reticle{display:none}.neural-field,.creature>img,.node{translate:none!important;rotate:0deg!important}}

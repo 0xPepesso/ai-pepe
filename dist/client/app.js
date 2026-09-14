@@ -7,7 +7,8 @@ function setPepeMode(mode='idle',label=''){
   creature.dataset.pepeMode=mode;$('pepe-reaction').textContent=label||PEPE_MODE_LABELS[mode]||PEPE_MODE_LABELS.idle;
 }
 let pointerFrame=0;document.addEventListener('pointermove',event=>{if(pointerFrame)return;pointerFrame=requestAnimationFrame(()=>{document.body.style.setProperty('--mx',event.clientX+'px');document.body.style.setProperty('--my',event.clientY+'px');pointerFrame=0})},{passive:true});
-const pepeCreature=$('pepe-creature');$('pepe-eyes')?.remove();
+const pepeCreature=$('pepe-creature'),pepePortrait=$('pepe-portrait');$('pepe-eyes')?.remove();
+if(pepeCreature&&pepePortrait){pepePortrait.className='pepe-background';pepePortrait.src='/pepe-town-bg.jpg?v=1';pepePortrait.alt='Monochrome Japanese night town';const makeLayer=part=>{const image=new Image();image.className='pepe-figure pepe-'+part;image.src='/pepe-ronin-layer.png?v=1';image.alt='';image.setAttribute('aria-hidden','true');return image};pepeCreature.append(makeLayer('body'),makeLayer('head'))}
 let gazeFrame=0,gazeIdleTimer=0;
 function movePepeScene(clientX,clientY){
   if(!pepeCreature)return;const box=pepeCreature.getBoundingClientRect(),nx=Math.max(-1,Math.min(1,(clientX-(box.left+box.width/2))/(box.width*.5))),ny=Math.max(-1,Math.min(1,(clientY-(box.top+box.height/2))/(box.height*.5)));
