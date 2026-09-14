@@ -18,7 +18,7 @@ function placePepeEyes(){
 function pointPepeEyes(clientX,clientY){
   if(!pepeCreature)return;const box=pepeCreature.getBoundingClientRect(),nx=Math.max(-1,Math.min(1,(clientX-(box.left+box.width/2))/(box.width*.5))),ny=Math.max(-1,Math.min(1,(clientY-(box.top+box.height/2))/(box.height*.5)));
   pepeCreature.style.setProperty('--scene-x',nx*5+'px');pepeCreature.style.setProperty('--scene-y',ny*3+'px');pepeCreature.style.setProperty('--gaze-x',(50+nx*34)+'%');pepeCreature.style.setProperty('--gaze-y',(50+ny*30)+'%');
-  trackedEyes.forEach(eye=>{eye.style.setProperty('--look-x',nx*eye.clientWidth*.16+'px');eye.style.setProperty('--look-y',ny*eye.clientHeight*.18+'px')});
+  trackedEyes.forEach(eye=>{eye.style.setProperty('--look-x',nx*eye.clientWidth*.105+'px');eye.style.setProperty('--look-y',ny*eye.clientHeight*.11+'px')});
   pepeCreature.querySelectorAll('.node').forEach((node,index)=>{const weight=.8+(index%3)*.35;node.style.setProperty('--node-x',nx*weight+'px');node.style.setProperty('--node-y',ny*weight+'px')});
   clearTimeout(gazeIdleTimer);gazeIdleTimer=setTimeout(()=>pointPepeEyes(box.left+box.width/2,box.top+box.height/2),1600);
 }
