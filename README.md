@@ -14,6 +14,16 @@ AI-powered token intelligence for Robinhood Chain.
 
 </div>
 
+## Community-created token
+
+The AI PEPE community created a token around the live product and its open-source research terminal.
+
+**Contract:** [`0xd27957c95b484c6bba5a1586c3acb162c31d5b68`](https://robinhoodchain.blockscout.com/token/0xd27957c95b484c6bba5a1586c3acb162c31d5b68)
+
+[Analyze the token with AI PEPE](https://askaipepe.app/token/0xd27957c95b484c6bba5a1586c3acb162c31d5b68)
+
+> Community-created token. Always verify the full contract address. Nothing in this repository is financial advice.
+
 ---
 
 ## The thirty seconds
