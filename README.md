@@ -6,7 +6,7 @@
 
 AI-powered token intelligence for Robinhood Chain.
 
-`read-only` · `no wallet connection` · `8 signal groups` · `public research`
+`read-only` · `no wallet connection` · `8 signal groups` · `ronin interface`
 
 ### [Open AI PEPE](https://askaipepe.app)
 
